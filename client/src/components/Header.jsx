@@ -1,74 +1,79 @@
-import { FaSearch } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { FaMoon, FaSun } from 'react-icons/fa';
 
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('searchTerm', searchTerm);
-    const searchQuery = urlParams.toString();
-    navigate(`/search?${searchQuery}`);
-  };
+  
+  // LocalStorage se check karega ki pehle dark mode on tha ya nahi
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem('theme') === 'dark' ||
+    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  );
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get('searchTerm');
-    if (searchTermFromUrl) {
-      setSearchTerm(searchTermFromUrl);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-  }, [location.search]);
+  }, [darkMode]);
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <header className='bg-slate-200 shadow-md'>
-      <div className='flex justify-between items-center max-w-6xl mx-auto p-3'>
+    <header className='bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-200'>
+      <div className='flex justify-between items-center max-w-7xl mx-auto px-6 py-4'>
+        {/* Logo */}
         <Link to='/'>
-          <h1 className='font-bold text-sm sm:text-xl flex flex-wrap'>
-            <span className='text-slate-500'>Sahand</span>
-            <span className='text-slate-700'>Estate</span>
+          <h1 className='text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight hover:opacity-90 transition-opacity'>
+            HomeHorizon
           </h1>
         </Link>
-        <form
-          onSubmit={handleSubmit}
-          className='bg-slate-100 p-3 rounded-lg flex items-center'
-        >
-          <input
-            type='text'
-            placeholder='Search...'
-            className='bg-transparent focus:outline-none w-24 sm:w-64'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button>
-            <FaSearch className='text-slate-600' />
-          </button>
-        </form>
-        <ul className='flex gap-4'>
-          <Link to='/'>
-            <li className='hidden sm:inline text-slate-700 hover:underline'>
-              Home
-            </li>
+
+        {/* Navigation Links */}
+        <nav className='flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-slate-200'>
+          <Link to='/' className='text-blue-600 dark:text-blue-400 font-semibold'>
+            Home
           </Link>
-          <Link to='/about'>
-            <li className='hidden sm:inline text-slate-700 hover:underline'>
-              About
-            </li>
+          <Link to='/search' className='hover:text-blue-600 dark:hover:text-blue-400 transition-colors'>
+            All Properties
           </Link>
-          <Link to='/profile'>
-            {currentUser ? (
+
+          {currentUser ? (
+            <Link to='/profile' className='flex items-center gap-2'>
               <img
-                className='rounded-full h-7 w-7 object-cover'
+                className='rounded-full h-8 w-8 object-cover border border-slate-200 dark:border-slate-700'
                 src={currentUser.avatar}
                 alt='profile'
               />
-            ) : (
-              <li className=' text-slate-700 hover:underline'> Sign in</li>
-            )}
-          </Link>
-        </ul>
+            </Link>
+          ) : (
+            <>
+              <Link to='/sign-in' className='hover:text-blue-600 dark:hover:text-blue-400 transition-colors'>
+                Login
+              </Link>
+              <Link to='/sign-up' className='hover:text-blue-600 dark:hover:text-blue-400 transition-colors'>
+                Register
+              </Link>
+            </>
+          )}
+
+          {/* Working Dark Mode Toggle Button */}
+          <button
+            type='button'
+            onClick={toggleTheme}
+            className='p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 transition-all cursor-pointer'
+            title='Toggle Dark / Light Mode'
+          >
+            {darkMode ? <FaSun className='text-sm' /> : <FaMoon className='text-sm' />}
+          </button>
+        </nav>
       </div>
     </header>
   );
